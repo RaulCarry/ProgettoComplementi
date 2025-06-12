@@ -34,6 +34,7 @@ int shutdown_now=0; // used for termination
 volatile int disastrOS_time=0;
 
 void disastrOS_trap(){
+  disastrOS_time++;
   int syscall_num=running->syscall_num;
   if (log_file)
     fprintf(log_file, "TIME: %d\tPID: %d\tACTION: %s %d\n",

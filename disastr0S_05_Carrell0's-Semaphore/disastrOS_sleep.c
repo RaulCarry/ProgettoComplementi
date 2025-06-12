@@ -5,10 +5,9 @@
 #include "disastrOS_syscalls.h"
 
 void internal_sleep(){
-  //! determines how many cicles a process has to sleep, by reading the argument from
-  //! the syscall
+
   if (running->timer) {
-    printf("process has already a timer!!!\n");
+    printf("il processo ha già un timer!!!\n");
     running->syscall_retvalue=DSOS_ESLEEP;
     return;
   }
@@ -17,18 +16,13 @@ void internal_sleep(){
   
   TimerItem* new_timer=TimerList_add(&timer_list, wake_time, running);
   if (! new_timer) {
-    printf("no new timer!!!\n");
+    printf("nun je sta il timer!!!\n");
     running->syscall_retvalue=DSOS_ESLEEP;
     return;
   } 
-  running->status=Waiting;
-  List_insert(&waiting_list, waiting_list.last, (ListItem*) running);
-  if (ready_list.first)
-    running=(PCB*) List_detach(&ready_list, ready_list.first);
-  else {
-    running=0;
-    printf ("they are all sleeping\n");
-    disastrOS_printStatus();
-  }
-}
 
+  running->status=Waiting;
+
+  List_insert(&waiting_list, waiting_list.last, (ListItem*) running);
+
+}

@@ -12,6 +12,7 @@ void waiter(void* args) {
   fflush(stdout);
   int ret = disastrOS_sem_wait(sem_rid);
   printf("[Waiter %d] resumed (ret=%d)\n", pid, ret);
+  disastrOS_sleep(1);
   fflush(stdout);
   disastrOS_exit(ret);
 }
@@ -21,6 +22,7 @@ void poster(void* args) {
   printf("[Poster %d] posting semaphore %d\n", pid, sem_rid);
   fflush(stdout);
   disastrOS_sem_post(sem_rid);
+  disastrOS_sleep(1);
   disastrOS_exit(0);
 }
 
