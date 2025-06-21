@@ -11,11 +11,11 @@ static int mq_rid;
 void producer(void* args) {
   int pid = disastrOS_getpid();
   int value = pid * 10;                       
-  printf("[Prod  %d] send %d\n", pid, value);
+  printf("[Prod  %d] mandiamo %d\n", pid, value);
 
   disastrOS_mq_send(mq_rid, (void*)(long)value);
-
-  printf("[Prod  %d] done\n", pid);
+  disastrOS_sleep(1000);
+  printf("[Prod  %d] job's done\n", pid);
   disastrOS_exit(0);
 }
 
@@ -23,16 +23,16 @@ void producer(void* args) {
 void consumer(void* args) {
   int pid = disastrOS_getpid();
   void* msg;
-  printf("[Cons  %d] waiting…\n", pid);
+  printf("[Cons  %d] attendo…\n", pid);
 
   disastrOS_mq_receive(mq_rid, &msg);
-
-  printf("[Cons  %d] got %ld\n", pid, (long)msg);
+  disastrOS_sleep(1000);
+  printf("[Cons  %d] ricevuto %ld\n", pid, (long)msg);
   disastrOS_exit((long)msg);
 }
 
 void initFunction(void* args) {
-  printf("[Init] opening MQ (cap=%d)…\n", CAPACITY);
+  printf("[Init] apertura MQ (cap=%d)…\n", CAPACITY);
   mq_rid = disastrOS_mq_open(CAPACITY);
   printf("[Init] mq rid = %d\n", mq_rid);
 
@@ -47,12 +47,12 @@ void initFunction(void* args) {
   int alive = N_PRODUCERS + N_CONSUMERS;
   int pid, retval;
   while (alive && (pid = disastrOS_wait(0, &retval)) > 0) {
-    printf("[Init] child %d terminated (rv=%d)\n", pid, retval);
+    printf("[Init] figlio %d terminato (rv=%d)\n", pid, retval);
     --alive;
   }
 
   disastrOS_mq_close(mq_rid);
-  printf("[Init] MQ test completed, shutting down.\n");
+  printf("[Init] MQ test completato, terminazione.\n");
   disastrOS_shutdown();
 
 }

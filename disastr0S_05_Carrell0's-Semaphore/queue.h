@@ -14,11 +14,8 @@ typedef struct{
 }Mqueue;
 
 void MQueue_init();
-int  MQueue_open(int capacity);                
-int  MQueue_send(int rid, void* msg);          
-int  MQueue_receive(int rid, void** msg);     
-int  MQueue_close(int rid);
 
-
-
-
+void internal_mq_open();
+void internal_mq_send();
+void internal_mq_receive();
+void internal_mq_close();

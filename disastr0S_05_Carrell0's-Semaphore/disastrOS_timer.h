@@ -3,7 +3,7 @@
 
 struct PCB;
 
-typedef struct  {
+typedef struct TimerItem {
   ListItem list;
   int awakening_time;
   struct PCB* pcb;

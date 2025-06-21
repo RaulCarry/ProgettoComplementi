@@ -1,72 +1,64 @@
 #include <assert.h>
 #include <stdio.h>
 #include "disastrOS.h"
+#include "disastrOS_pcb.h"
 #include "disastrOS_syscalls.h"
+#include "disastrOS_globals.h"
 #include "disastrOS_schedule.h"
 
-/* attende un figlio (pid=0 qualunque) e restituisce il suo pid;
-   se result!=NULL scrive lì il valore di ritorno del figlio               */
 void internal_wait() {
-  int pid_req   = running->syscall_args[0];      /* 0 = wait()        */
-  int* retval_p = (int*) running->syscall_args[1];
+    int pid_to_wait = (int)running->syscall_args[0];
+    int* retval_ptr = (int*)running->syscall_args[1];
 
-  /* errore immediato se non ho figli */
-  if (!running->children.first) {
-    running->syscall_retvalue = DSOS_EWAIT;
-    return;
-  }
+    while (1) {
+        ListItem* aux = running->children.first;
+        PCBPtr* child_ptr = NULL;
+        int child_found = 0;
 
-  /* ciclo: cerca uno zombie; se non c’è, blocca e riprova alla riattivazione */
-  for (;;) {
+        while (aux) {
+            child_ptr = (PCBPtr*)aux;
+            PCB* child_pcb = child_ptr->pcb;
+            if (child_pcb->status == Zombie && (pid_to_wait == 0 || pid_to_wait == child_pcb->pid)) {
+                child_found = 1;
+                break;
+            }
+            aux = aux->next;
+        }
 
-    /* 1. cerca un figlio zombie che soddisfi la richiesta */
-    PCB*    zombie     = NULL;
-    PCBPtr* zombie_ptr = NULL;
-    int     seen_pid   = 0;                       /* per pid specifico */
+        if (child_found) {
+            PCB* zombie_pcb = child_ptr->pcb;
+            
+            if (retval_ptr) {
+                *retval_ptr = zombie_pcb->return_value;
+            }
+            running->syscall_retvalue = zombie_pcb->pid;
 
-    for (ListItem* it = running->children.first; it; it = it->next) {
-      PCBPtr* cptr = (PCBPtr*) it;
-      PCB*    cpcb = cptr->pcb;
+            List_detach(&running->children, (ListItem*)child_ptr);
+            PCBPtr_free(child_ptr);
 
-      if (pid_req == 0 || cpcb->pid == pid_req)
-        seen_pid = 1;                             /* esiste un figlio con quel pid */
+            List_detach(&zombie_list, (ListItem*)zombie_pcb);
+            PCB_free(zombie_pcb);
+            
+            return; 
+        }
 
-      if ((pid_req == 0 || cpcb->pid == pid_req) &&
-          cpcb->status == Zombie) {
-        zombie     = cpcb;
-        zombie_ptr = cptr;
-        break;
-      }
+        if (running->children.size == 0) {
+            running->syscall_retvalue = DSOS_EWAIT; 
+            return;
+        }
+
+        running->status = Waiting;
+        List_insert(&waiting_list, waiting_list.last, (ListItem*)running);
+        
+        if (ready_list.first) {
+            running = (PCB*)List_detach(&ready_list, ready_list.first);
+            running->status = Running;
+        } else {
+            running = 0;
+            disastrOS_printStatus();
+            printf("TUTTI I PROCESSI IN INDLING, ATTENDIAMO...\n");
+        }
+        
+        internal_schedule();
     }
-
-    /* 2. se cercavo un pid che non è nemmeno mio figlio → errore */
-    if (pid_req > 0 && !seen_pid) {
-      running->syscall_retvalue = DSOS_EWAIT;
-      return;
-    }
-
-    /* 3. se ho trovato uno zombie, “reap-pa” e restituisci */
-    if (zombie) {
-      /* stacca da children */
-      List_detach(&running->children, (ListItem*) zombie_ptr);
-      PCBPtr_free(zombie_ptr);
-
-      /* stacca da zombie_list */
-      List_detach(&zombie_list, (ListItem*) zombie);
-
-      /* valori di ritorno */
-      running->syscall_retvalue = zombie->pid;
-      if (retval_p)
-        *retval_p = zombie->return_value;
-
-      PCB_free(zombie);
-      return;
-    }
-
-    /* 4. nessuno zombie valido: blocca il padre e cedi la CPU */
-    running->status = Waiting;
-    List_insert(&waiting_list, waiting_list.last, (ListItem*) running);
-
-    internal_schedule();          /* swapcontext: quando torno ricomincio il for */
-  }
 }

@@ -8,26 +8,28 @@ static int sem_rid;
 
 void waiter(void* args) {
   int pid = disastrOS_getpid();
-  printf("[Waiter %d] waiting on semaphore %d\n", pid, sem_rid);
+
+  printf("[Waiter %d] attendiamo il semaforo: %d\n", pid, sem_rid);
   fflush(stdout);
+
   int ret = disastrOS_sem_wait(sem_rid);
-  printf("[Waiter %d] resumed (ret=%d)\n", pid, ret);
-  disastrOS_sleep(1);
+  printf("[Waiter %d] ripreso (ret=%d)\n", pid, ret);
+  disastrOS_sleep(1000);
   fflush(stdout);
   disastrOS_exit(ret);
 }
 
 void poster(void* args) {
   int pid = disastrOS_getpid();
-  printf("[Poster %d] posting semaphore %d\n", pid, sem_rid);
+  printf("[Poster %d] postiamo il semaphore %d\n", pid, sem_rid);
   fflush(stdout);
   disastrOS_sem_post(sem_rid);
-  disastrOS_sleep(1);
+  disastrOS_sleep(1000);
   disastrOS_exit(0);
 }
 
 void initFunction(void* args) {
-  printf("[Init] opening semaphore value 0…\n");
+  printf("[Init] apertura semaphore value 0…\n");
   fflush(stdout);
   sem_rid = disastrOS_sem_open(0);
   printf("[Init] sem rid = %d\n", sem_rid);
@@ -42,15 +44,17 @@ void initFunction(void* args) {
     disastrOS_spawn(poster, NULL);
 
   int alive = N_WAITERS + N_POSTERS;
+
+
   int pid, retval;
   while (alive && (pid = disastrOS_wait(0, &retval)) > 0) {
-    printf("[Init] child %d terminated with retval=%d\n", pid, retval);
+    printf("[Init] child %d terminato with retval=%d\n", pid, retval);
     fflush(stdout);
     --alive;
   }
 
   disastrOS_sem_close(sem_rid);
-  printf("[Init] test completed, shutting down.\n");
+  printf("[Init] test completato, terminazione.\n");
   fflush(stdout);
   disastrOS_shutdown();
 }

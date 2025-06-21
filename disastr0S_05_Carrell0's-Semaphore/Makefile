@@ -27,7 +27,6 @@ OBJS      = pool_allocator.o \
             disastrOS_shutdown.o \
             disastrOS_schedule.o \
             disastrOS_preempt.o \
-            disastrOS_syscalls.o \
             sem.o \
             queue.o
 
