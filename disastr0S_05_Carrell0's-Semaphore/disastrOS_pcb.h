@@ -82,4 +82,6 @@ PCBPtr* PCBPtr_byPID(ListHead* head, int pid);
 // prints a list of pcb ptrs
 void PCBPtrList_print(ListHead* head);
 
+void print_children_pids(ListHead* head);
+
 

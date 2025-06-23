@@ -7,6 +7,9 @@
 
 void internal_exit(){
 
+  printf("[EXIT di PID %d] Genitore: PID %d. Controllo figli del genitore PRIMA...\n", running->pid, running->parent->pid);
+  print_children_pids(&running->parent->children);
+
   running->return_value = running->syscall_args[0];
 
   while(running->children.first){

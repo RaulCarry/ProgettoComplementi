@@ -10,8 +10,9 @@
 // returns the pid of the child
 // it starts a function in the form of void f();
 void internal_spawn(){
-  static PCB* new_pcb;
+  PCB* new_pcb;
   new_pcb=PCB_alloc();
+
   if (!new_pcb) {
     running->syscall_retvalue=DSOS_ESPAWN;
     return;

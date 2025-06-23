@@ -87,6 +87,10 @@ void disastrOS_trap(){
   } else {
     (*syscall_vector[syscall_num])();
   }
+
+  if (running && ready_list.first) {
+    internal_schedule();
+  }
   
   if (running) {
       setcontext(&running->cpu_state);
@@ -212,8 +216,11 @@ void disastrOS_sleep(int sleep_time) {
   }
 
 int disastrOS_getpid(){ 
-  if (!running) return -1; return running->pid; 
+  if (!running) {
+    return -1;
   }
+  return running->pid; 
+}
 
 int disastrOS_sem_open(int v){ 
   return disastrOS_syscall(DSOS_CALL_SEM_OPEN, v); 

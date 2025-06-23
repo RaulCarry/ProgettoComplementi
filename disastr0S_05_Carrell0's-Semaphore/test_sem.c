@@ -14,17 +14,18 @@ void waiter(void* args) {
 
   int ret = disastrOS_sem_wait(sem_rid);
   printf("[Waiter %d] ripreso (ret=%d)\n", pid, ret);
-  disastrOS_sleep(1000);
+  
   fflush(stdout);
   disastrOS_exit(ret);
 }
 
 void poster(void* args) {
   int pid = disastrOS_getpid();
+  disastrOS_sleep(1000*pid);
   printf("[Poster %d] postiamo il semaphore %d\n", pid, sem_rid);
   fflush(stdout);
   disastrOS_sem_post(sem_rid);
-  disastrOS_sleep(1000);
+  
   disastrOS_exit(0);
 }
 

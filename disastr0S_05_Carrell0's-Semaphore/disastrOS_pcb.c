@@ -136,3 +136,15 @@ void PCBList_print(ListHead* head) {
   printf("}\n");
 }
 
+void print_children_pids(ListHead* head) {
+    printf("[DEBUG CHILDREN: (size=%d) ", head->size);
+    ListItem* aux = head->first;
+    while(aux) {
+        PCBPtr* pcb_ptr = (PCBPtr*) aux;
+        printf("PID %d -> ", pcb_ptr->pcb->pid);
+        aux = aux->next;
+    }
+    printf("NULL]\n");
+    fflush(stdout);
+}
+
